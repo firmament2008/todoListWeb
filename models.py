@@ -8,8 +8,8 @@ class Todo(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     completed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     start_time = db.Column(db.DateTime, nullable=True)
     finish_time = db.Column(db.DateTime, nullable=True)
     deleted_at = db.Column(db.DateTime, nullable=True)  # 添加软删除字段

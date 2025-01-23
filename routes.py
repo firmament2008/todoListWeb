@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, pre_load
 from extensions import db
 from models import Todo
 from datetime import datetime
@@ -17,6 +17,20 @@ class TodoSchema(Schema):
     updated_at = fields.DateTime(dump_only=True)
     start_time = fields.DateTime(allow_none=True)
     finish_time = fields.DateTime(allow_none=True)
+
+    @staticmethod
+    def _deserialize_datetime_field(value):
+        if value == "":
+            return None
+        return value
+
+    @pre_load
+    def process_datetime_fields(self, data, **kwargs):
+        if 'start_time' in data:
+            data['start_time'] = self._deserialize_datetime_field(data['start_time'])
+        if 'finish_time' in data:
+            data['finish_time'] = self._deserialize_datetime_field(data['finish_time'])
+        return data
 
 # 待办事项路由
 @todo_bp.route('', methods=['GET'])
@@ -42,11 +56,11 @@ def create_todo():
         
         # 如果标记为已完成且没有设置开始时间，则设置为当前时间
         if todo.completed and not todo.start_time:
-            todo.start_time = datetime.utcnow()
+            todo.start_time = datetime.now()
         
         # 如果标记为已完成且没有设置完成时间，则设置为当前时间
         if todo.completed and not todo.finish_time:
-            todo.finish_time = datetime.utcnow()
+            todo.finish_time = datetime.now()
         
         db.session.add(todo)
         db.session.commit()
@@ -81,10 +95,10 @@ def update_todo(todo_id):
             if new_completed:
                 # 如果是首次完成且没有设置完成时间，则设置为当前时间
                 if not todo.finish_time:
-                    todo.finish_time = datetime.utcnow()
+                    todo.finish_time = datetime.now()
                 # 如果是首次完成且没有设置开始时间，则设置为当前时间
                 if not todo.start_time:
-                    todo.start_time = datetime.utcnow()
+                    todo.start_time = datetime.now()
             else:
                 # 如果取消完成，则清除完成时间
                 todo.finish_time = None
@@ -104,7 +118,7 @@ def delete_todo(todo_id):
     if not todo:
         return jsonify({'message': '待办事项不存在'}), 404
     
-    todo.deleted_at = datetime.utcnow()
+    todo.deleted_at = datetime.now()
     db.session.commit()
     
     return jsonify({'message': '删除成功'}), 200
