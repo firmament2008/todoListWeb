@@ -1,8 +1,4 @@
 from flask import Flask
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 
@@ -19,10 +15,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
 
 # 初始化扩展
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-jwt = JWTManager(app)
-CORS(app)
+from extensions import init_extensions
+init_extensions(app)
 
 # 导入路由和模型
 from routes import auth_bp, todo_bp
@@ -32,4 +26,4 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(todo_bp, url_prefix='/api/todos')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

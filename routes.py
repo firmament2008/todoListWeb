@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, validate
+from extensions import db
 from models import User, Todo
-from app import db
 
 # 创建蓝图
 auth_bp = Blueprint('auth', __name__)
