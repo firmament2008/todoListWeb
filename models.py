@@ -12,3 +12,4 @@ class Todo(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     start_time = db.Column(db.DateTime, nullable=True)
     finish_time = db.Column(db.DateTime, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)  # 添加软删除字段

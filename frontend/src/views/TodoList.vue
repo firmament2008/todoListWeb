@@ -19,7 +19,13 @@
               <el-option label="已完成" value="completed" />
             </el-select>
           </div>
-          <el-button type="primary" @click="dialogVisible = true">添加待办</el-button>
+          <div class="header-right">
+            <el-button type="info" @click="showDeletedTodos = true">
+              <el-icon><Delete /></el-icon>
+              垃圾桶
+            </el-button>
+            <el-button type="primary" @click="dialogVisible = true">添加待办</el-button>
+          </div>
         </div>
       </template>
 
@@ -60,6 +66,28 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 已删除待办事项对话框 -->
+      <el-dialog
+        title="已删除的待办事项"
+        v-model="showDeletedTodos"
+        width="800px"
+      >
+        <el-table :data="deletedTodos" style="width: 100%">
+          <el-table-column prop="title" label="标题" min-width="120"></el-table-column>
+          <el-table-column prop="description" label="描述" min-width="180"></el-table-column>
+          <el-table-column prop="deleted_at" label="删除时间" width="160">
+            <template #default="{ row }">
+              {{ row.deleted_at ? new Date(row.deleted_at).toLocaleString() : '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" @click="handleRestore(row)" size="small">恢复</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-dialog>
 
       <!-- 添加/编辑待办对话框 -->
       <el-dialog
@@ -112,7 +140,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { Delete } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import axios from 'axios'
@@ -211,6 +240,32 @@ const handleToggleStatus = async (row) => {
 }
 
 // 删除待办事项
+const showDeletedTodos = ref(false)
+const deletedTodos = ref([])
+
+// 获取已删除的待办事项列表
+const fetchDeletedTodos = async () => {
+  try {
+    const response = await axios.get('/api/todos/deleted')
+    deletedTodos.value = response.data
+  } catch (error) {
+    ElMessage.error('获取已删除待办事项失败')
+  }
+}
+
+// 恢复已删除的待办事项
+const handleRestore = async (row) => {
+  try {
+    await axios.put(`/api/todos/${row.id}/restore`)
+    await fetchDeletedTodos()
+    await fetchTodos()
+    ElMessage.success('恢复成功')
+  } catch (error) {
+    ElMessage.error('恢复失败')
+  }
+}
+
+// 修改删除方法为软删除
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除这个待办事项吗？', '提示', {
@@ -228,6 +283,13 @@ const handleDelete = async (row) => {
     }
   }
 }
+
+// 监听垃圾桶对话框打开
+watch(showDeletedTodos, (newVal) => {
+  if (newVal) {
+    fetchDeletedTodos()
+  }
+})
 
 // 提交表单
 const handleSubmit = async () => {
@@ -369,5 +431,10 @@ onMounted(() => {
 
 .status-filter {
   width: 120px;
+}
+.header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 </style>
