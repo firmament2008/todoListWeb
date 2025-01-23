@@ -11,6 +11,16 @@
       <el-table v-loading="loading" :data="todos" style="width: 100%">
         <el-table-column prop="title" label="标题" min-width="120"></el-table-column>
         <el-table-column prop="description" label="描述" min-width="180"></el-table-column>
+        <el-table-column label="开始时间" width="160">
+          <template #default="{ row }">
+            {{ row.start_time ? new Date(row.start_time).toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="完成时间" width="160">
+          <template #default="{ row }">
+            {{ row.finish_time ? new Date(row.finish_time).toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.completed ? 'success' : 'info'">
@@ -144,7 +154,8 @@ const handleEdit = (row) => {
 const handleToggleStatus = async (row) => {
   try {
     await axios.put(`/api/todos/${row.id}`, {
-      ...row,
+      title: row.title,
+      description: row.description,
       completed: !row.completed
     })
     await fetchTodos()
@@ -182,9 +193,11 @@ const handleSubmit = async () => {
     submitting.value = true
     
     if (isEdit.value) {
-      await axios.put(`/api/todos/${todoForm.id}`, todoForm)
+      const { title, description, completed } = todoForm
+      await axios.put(`/api/todos/${todoForm.id}`, { title, description, completed })
     } else {
-      await axios.post('/api/todos', todoForm)
+      const { title, description, completed } = todoForm
+      await axios.post('/api/todos', { title, description, completed })
     }
     
     dialogVisible.value = false

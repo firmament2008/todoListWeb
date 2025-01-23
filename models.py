@@ -10,3 +10,5 @@ class Todo(db.Model):
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    start_time = db.Column(db.DateTime, nullable=True)
+    finish_time = db.Column(db.DateTime, nullable=True)

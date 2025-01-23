@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from marshmallow import Schema, fields, validate
 from extensions import db
 from models import Todo
+from datetime import datetime
 
 # 创建蓝图
 todo_bp = Blueprint('todo', __name__)
@@ -14,6 +15,8 @@ class TodoSchema(Schema):
     completed = fields.Bool()
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
+    start_time = fields.DateTime(dump_only=True)
+    finish_time = fields.DateTime(dump_only=True)
 
 # 待办事项路由
 @todo_bp.route('', methods=['GET'])
