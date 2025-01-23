@@ -56,6 +56,10 @@ npm run dev
 - 点击待办事项可以编辑或删除
 - 使用复选框可以标记待办事项为已完成
 
+### 6. 界面预览
+
+![界面预览](todoListWeb.png)
+
 ## 前端环境配置指南
 
 ### 1. 安装 nvm (Node Version Manager)
