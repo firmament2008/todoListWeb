@@ -59,3 +59,28 @@ Thumbs.db
 # Flask
 instance/
 .webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Private data and configurations
+*.pem
+*.key
+*.crt
+*.env
+config.ini
+secrets.yaml
+*.secret
+
+# Logs
+logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
