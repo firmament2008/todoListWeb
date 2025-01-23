@@ -3,7 +3,22 @@
     <el-card class="todo-card">
       <template #header>
         <div class="card-header">
-          <h2 class="title">待办事项</h2>
+          <div class="header-left">
+            <h2 class="title">待办事项</h2>
+            <el-input
+              v-model="searchQuery"
+              placeholder="搜索待办事项"
+              prefix-icon="Search"
+              clearable
+              class="search-input"
+              @input="handleSearch"
+            />
+            <el-select v-model="statusFilter" placeholder="状态过滤" class="status-filter">
+              <el-option label="全部" value="all" />
+              <el-option label="未完成" value="incomplete" />
+              <el-option label="已完成" value="completed" />
+            </el-select>
+          </div>
           <el-button type="primary" @click="dialogVisible = true">添加待办</el-button>
         </div>
       </template>
@@ -115,6 +130,8 @@ const todos = ref([])
 // 排序状态
 const sortBy = ref('created_at')
 const sortOrder = ref('descending')
+const searchQuery = ref('')
+const statusFilter = ref('all')
 
 const todoForm = reactive({
   id: null,
@@ -253,10 +270,28 @@ const handleDialogClose = () => {
 }
 
 // 页面加载时获取待办事项列表
-// 计算排序后的待办事项列表
+// 计算经过搜索和排序后的待办事项列表
 const sortedTodos = computed(() => {
-  const sorted = [...todos.value]
-  return sorted.sort((a, b) => {
+  let filtered = [...todos.value]
+  
+  // 搜索过滤
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(todo => 
+      todo.title.toLowerCase().includes(query) ||
+      (todo.description && todo.description.toLowerCase().includes(query))
+    )
+  }
+
+  // 状态过滤
+  if (statusFilter.value !== 'all') {
+    filtered = filtered.filter(todo => 
+      statusFilter.value === 'completed' ? todo.completed : !todo.completed
+    )
+  }
+  
+  // 排序
+  return filtered.sort((a, b) => {
     const aValue = a[sortBy.value]
     const bValue = b[sortBy.value]
     
@@ -320,5 +355,19 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-input {
+  width: 300px;
+}
+
+.status-filter {
+  width: 120px;
 }
 </style>
