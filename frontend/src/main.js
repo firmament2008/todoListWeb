@@ -8,21 +8,9 @@ import App from './App.vue'
 // 创建Vuex store
 const store = createStore({
   state() {
-    return {
-      token: localStorage.getItem('token') || '',
-      user: null
-    }
+    return {}
   },
-  mutations: {
-    setToken(state, token) {
-      state.token = token
-      localStorage.setItem('token', token)
-    },
-    clearToken(state) {
-      state.token = ''
-      localStorage.removeItem('token')
-    }
-  }
+  mutations: {}
 })
 
 // 创建路由
@@ -31,36 +19,18 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/login'
-    },
-    {
-      path: '/login',
-      component: () => import('./views/Login.vue')
-    },
-    {
-      path: '/register',
-      component: () => import('./views/Register.vue')
+      redirect: '/todos'
     },
     {
       path: '/todos',
-      component: () => import('./views/TodoList.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('./views/TodoList.vue')
     }
   ]
 })
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!token) {
-      next('/login')
-    } else {
-      next()
-    }
-  } else {
-    next()
-  }
+  next()
 })
 
 // 创建Vue应用

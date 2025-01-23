@@ -12,17 +12,15 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///todo.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
 
 # 初始化扩展
 from extensions import init_extensions
 init_extensions(app)
 
-# 导入路由和模型
-from routes import auth_bp, todo_bp
+# 导入路由
+from routes import todo_bp
 
 # 注册蓝图
-app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(todo_bp, url_prefix='/api/todos')
 
 if __name__ == '__main__':
