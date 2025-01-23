@@ -43,6 +43,7 @@ def create_todo():
 @todo_bp.route('/<int:todo_id>', methods=['PUT'])
 def update_todo(todo_id):
     schema = TodoSchema()
+    print("请求载荷:", request.json)  # 打印请求载荷
     data = schema.load(request.json)
     
     todo = Todo.query.get(todo_id)
@@ -55,14 +56,13 @@ def update_todo(todo_id):
     # 更新时间字段
     todo.start_time = data.get('start_time', todo.start_time)
     todo.finish_time = data.get('finish_time', todo.finish_time)
+    print("更新后的时间字段:", {"start_time": todo.start_time, "finish_time": todo.finish_time})  # 打印更新后的时间字段
     
     # 处理完成状态变更
     new_completed = data.get('completed', todo.completed)
     if new_completed != todo.completed:
         if new_completed:
-            # 如果没有设置finish_time，则自动设置为当前时间
-            if not todo.finish_time:
-                todo.finish_time = datetime.utcnow()
+            todo.finish_time = datetime.utcnow()
         else:
             todo.finish_time = None
     

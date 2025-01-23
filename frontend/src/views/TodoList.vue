@@ -8,15 +8,15 @@
         </div>
       </template>
 
-      <el-table v-loading="loading" :data="todos" style="width: 100%">
-        <el-table-column prop="title" label="标题" min-width="120"></el-table-column>
+      <el-table v-loading="loading" :data="sortedTodos" style="width: 100%" @sort-change="handleSortChange">
+        <el-table-column prop="title" label="标题" min-width="120" sortable="custom" :sort-orders="['ascending', 'descending']" :sort-by="'title'"></el-table-column>
         <el-table-column prop="description" label="描述" min-width="180"></el-table-column>
-        <el-table-column label="开始时间" width="160">
+        <el-table-column prop="start_time" label="开始时间" width="160" sortable="custom" :sort-orders="['ascending', 'descending']" :sort-by="'start_time'">
           <template #default="{ row }">
             {{ row.start_time ? new Date(row.start_time).toLocaleString() : '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="完成时间" width="160">
+        <el-table-column prop="finish_time" label="完成时间" width="160" sortable="custom" :sort-orders="['ascending', 'descending']" :sort-by="'finish_time'">
           <template #default="{ row }">
             {{ row.finish_time ? new Date(row.finish_time).toLocaleString() : '-' }}
           </template>
@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import axios from 'axios'
@@ -111,6 +111,10 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const todoFormRef = ref(null)
 const todos = ref([])
+
+// 排序状态
+const sortBy = ref('created_at')
+const sortOrder = ref('descending')
 
 const todoForm = reactive({
   id: null,
@@ -249,6 +253,41 @@ const handleDialogClose = () => {
 }
 
 // 页面加载时获取待办事项列表
+// 计算排序后的待办事项列表
+const sortedTodos = computed(() => {
+  const sorted = [...todos.value]
+  return sorted.sort((a, b) => {
+    const aValue = a[sortBy.value]
+    const bValue = b[sortBy.value]
+    
+    // 处理空值
+    if (!aValue && !bValue) return 0
+    if (!aValue) return sortOrder.value === 'ascending' ? 1 : -1
+    if (!bValue) return sortOrder.value === 'ascending' ? -1 : 1
+    
+    // 比较值
+    if (sortBy.value === 'title') {
+      return sortOrder.value === 'ascending'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
+    } else {
+      const aDate = new Date(aValue)
+      const bDate = new Date(bValue)
+      return sortOrder.value === 'ascending'
+        ? aDate - bDate
+        : bDate - aDate
+    }
+  })
+})
+
+// 处理排序变更
+const handleSortChange = ({ prop, order }) => {
+  if (prop && order) {
+    sortBy.value = prop
+    sortOrder.value = order
+  }
+}
+
 onMounted(() => {
   fetchTodos()
 })
