@@ -15,8 +15,8 @@ class TodoSchema(Schema):
     completed = fields.Bool()
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
-    start_time = fields.DateTime(dump_only=True)
-    finish_time = fields.DateTime(dump_only=True)
+    start_time = fields.DateTime(allow_none=True)
+    finish_time = fields.DateTime(allow_none=True)
 
 # 待办事项路由
 @todo_bp.route('', methods=['GET'])
@@ -52,15 +52,21 @@ def update_todo(todo_id):
     todo.title = data['title']
     todo.description = data.get('description', todo.description)
     
+    # 更新时间字段
+    todo.start_time = data.get('start_time', todo.start_time)
+    todo.finish_time = data.get('finish_time', todo.finish_time)
+    
     # 处理完成状态变更
     new_completed = data.get('completed', todo.completed)
     if new_completed != todo.completed:
         if new_completed:
-            todo.finish_time = datetime.utcnow()
+            # 如果没有设置finish_time，则自动设置为当前时间
+            if not todo.finish_time:
+                todo.finish_time = datetime.utcnow()
         else:
             todo.finish_time = None
     
-    # 如果是首次开始（从未完成状态变为已完成），设置开始时间
+    # 如果是首次开始且没有设置start_time，则自动设置为当前时间
     if new_completed and not todo.start_time:
         todo.start_time = datetime.utcnow()
     

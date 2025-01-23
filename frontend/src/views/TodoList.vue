@@ -64,6 +64,24 @@
               placeholder="请输入待办事项描述"
             ></el-input>
           </el-form-item>
+          <el-form-item label="开始时间" prop="start_time">
+            <el-date-picker
+              v-model="todoForm.start_time"
+              type="datetime"
+              placeholder="选择开始时间"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+            ></el-date-picker>
+          </el-form-item>
+          <el-form-item label="完成时间" prop="finish_time">
+            <el-date-picker
+              v-model="todoForm.finish_time"
+              type="datetime"
+              placeholder="选择完成时间"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+            ></el-date-picker>
+          </el-form-item>
         </el-form>
         <template #footer>
           <span class="dialog-footer">
@@ -98,7 +116,9 @@ const todoForm = reactive({
   id: null,
   title: '',
   description: '',
-  completed: false
+  completed: false,
+  start_time: '',
+  finish_time: ''
 })
 
 const rules = {
@@ -135,6 +155,8 @@ const resetForm = () => {
   todoForm.title = ''
   todoForm.description = ''
   todoForm.completed = false
+  todoForm.start_time = ''
+  todoForm.finish_time = ''
   if (todoFormRef.value) {
     todoFormRef.value.resetFields()
   }
@@ -147,6 +169,8 @@ const handleEdit = (row) => {
   todoForm.title = row.title
   todoForm.description = row.description
   todoForm.completed = row.completed
+  todoForm.start_time = row.start_time
+  todoForm.finish_time = row.finish_time
   dialogVisible.value = true
 }
 
@@ -193,11 +217,11 @@ const handleSubmit = async () => {
     submitting.value = true
     
     if (isEdit.value) {
-      const { title, description, completed } = todoForm
-      await axios.put(`/api/todos/${todoForm.id}`, { title, description, completed })
+      const { title, description, completed, start_time, finish_time } = todoForm
+      await axios.put(`/api/todos/${todoForm.id}`, { title, description, completed, start_time, finish_time })
     } else {
-      const { title, description, completed } = todoForm
-      await axios.post('/api/todos', { title, description, completed })
+      const { title, description, completed, start_time, finish_time } = todoForm
+      await axios.post('/api/todos', { title, description, completed, start_time, finish_time })
     }
     
     dialogVisible.value = false
