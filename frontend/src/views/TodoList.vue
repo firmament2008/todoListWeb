@@ -73,7 +73,21 @@
         v-model="showDeletedTodos"
         width="800px"
       >
-        <el-table :data="deletedTodos" style="width: 100%">
+        <div class="dialog-header">
+          <el-button type="danger" @click="handlePermanentDeleteAll" :disabled="!deletedTodos.length">
+            <el-icon><Delete /></el-icon>
+            清空垃圾桶
+          </el-button>
+          <el-button type="danger" @click="handlePermanentDeleteBatch" :disabled="!selectedTodos.length">
+            批量删除
+          </el-button>
+        </div>
+        <el-table 
+          :data="deletedTodos" 
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" />
           <el-table-column prop="title" label="标题" min-width="120"></el-table-column>
           <el-table-column prop="description" label="描述" min-width="180"></el-table-column>
           <el-table-column prop="deleted_at" label="删除时间" width="160">
@@ -81,9 +95,12 @@
               {{ row.deleted_at ? new Date(row.deleted_at).toLocaleString() : '-' }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column label="操作" width="200" fixed="right">
             <template #default="{ row }">
-              <el-button type="primary" @click="handleRestore(row)" size="small">恢复</el-button>
+              <el-button-group>
+                <el-button type="primary" @click="handleRestore(row)" size="small">恢复</el-button>
+                <el-button type="danger" @click="handlePermanentDelete(row)" size="small">永久删除</el-button>
+              </el-button-group>
             </template>
           </el-table-column>
         </el-table>
@@ -113,7 +130,7 @@
               type="datetime"
               placeholder="选择开始时间"
               format="YYYY-MM-DD HH:mm:ss"
-              value-format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
             ></el-date-picker>
           </el-form-item>
           <el-form-item label="完成时间" prop="finish_time">
@@ -122,7 +139,7 @@
               type="datetime"
               placeholder="选择完成时间"
               format="YYYY-MM-DD HH:mm:ss"
-              value-format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
             ></el-date-picker>
           </el-form-item>
         </el-form>
@@ -382,6 +399,73 @@ const handleSortChange = ({ prop, order }) => {
   if (prop && order) {
     sortBy.value = prop
     sortOrder.value = order
+  }
+}
+
+const selectedTodos = ref([])
+
+// 处理表格选择变化
+const handleSelectionChange = (selection) => {
+  selectedTodos.value = selection
+}
+
+// 批量永久删除
+const handlePermanentDeleteBatch = async () => {
+  try {
+    await ElMessageBox.confirm('确定要永久删除选中的待办事项吗？此操作不可恢复！', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    const todoIds = selectedTodos.value.map(todo => todo.id)
+    await axios.delete('/api/todos/deleted/permanent/batch', {
+      data: { ids: todoIds }
+    })
+    await fetchDeletedTodos()
+    ElMessage.success('批量删除成功')
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || '批量删除失败')
+    }
+  }
+}
+
+// 清空垃圾桶
+const handlePermanentDeleteAll = async () => {
+  try {
+    await ElMessageBox.confirm('确定要清空垃圾桶吗？此操作不可恢复！', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await axios.delete('/api/todos/permanent/all')
+    await fetchDeletedTodos()
+    ElMessage.success('垃圾桶已清空')
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('清空失败')
+    }
+  }
+}
+
+// 永久删除单个待办事项
+const handlePermanentDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要永久删除这个待办事项吗？此操作不可恢复！', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await axios.delete(`/api/todos/deleted/permanent/${row.id}`)
+    await fetchDeletedTodos()
+    ElMessage.success('永久删除成功')
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('永久删除失败')
+    }
   }
 }
 
